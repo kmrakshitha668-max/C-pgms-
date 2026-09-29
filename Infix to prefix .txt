@@ -1,0 +1,91 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#define MAX 100
+char stack[MAX];
+int top = -1;
+void push(char ch) {
+    if (top < MAX - 1) {
+        stack[++top] = ch;
+    }
+}
+char pop() {
+    if (top >= 0) {
+        return stack[top--];
+    }
+    return '\0';
+}
+char peek() {
+    if (top >= 0) {
+        return stack[top];
+    }
+    return '\0';
+}
+int isEmpty() {
+    return top == -1;
+}
+int getPrecedence(char ch) {
+    if (ch == '^')
+        return 3;
+    if (ch == '*' || ch == '/')
+        return 2;
+    if (ch == '+' || ch == '-')
+        return 1;
+    return 0;
+}
+void reverseAndSwap(char* exp) {
+    int len = strlen(exp);
+    int i, j;
+    char temp;
+    for (i = 0, j = len - 1; i < j; i++, j--) {
+        temp = exp[i];
+        exp[i] = exp[j];
+        exp[j] = temp;
+    }
+    for (i = 0; i < len; i++) {
+        if (exp[i] == '(') {
+            exp[i] = ')';
+        } else if (exp[i] == ')') {
+            exp[i] = '(';
+        }
+    }
+}
+void infixToPrefix(char* infix, char* prefix) {
+    int i, k = 0;
+    char ch;
+    reverseAndSwap(infix);   
+    for (i = 0; infix[i] != '\0'; i++) {
+        ch = infix[i];
+        if (isalnum(ch)) {
+            prefix[k++] = ch;
+        }
+        else if (ch == '(') {
+            push(ch);
+        }
+        else if (ch == ')') {
+            while (!isEmpty() && peek() != '(') {
+                prefix[k++] = pop();
+            }
+            pop(); 
+        }
+        else {        
+            while (!isEmpty() && getPrecedence(ch) < getPrecedence(peek())) {
+                prefix[k++] = pop();
+            }
+            push(ch);
+        }
+    }
+    while (!isEmpty()) {
+        prefix[k++] = pop();
+    }
+    prefix[k] = '\0';
+    reverseAndSwap(prefix);
+}
+int main() {
+    char infix[MAX] = "((A/B)+C)-(D+(E*F))";
+    char prefix[MAX];
+    printf("Infix Expression: %s\n", infix);    
+    infixToPrefix(infix, prefix);   
+    printf("Prefix Expression: %s\n", prefix);
+    return 0;
+}
